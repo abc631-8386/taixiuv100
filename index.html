@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SUN.ABC - VIP SYSTEM</title>
+    <style>
+        :root { --gold: #ffcf4b; --dark: #020617; --win: #22c55e; --lose: #ef4444; --blue: #0088cc; }
+        body { margin: 0; font-family: -apple-system, sans-serif; background: radial-gradient(circle, #1e293b, #020617); color: white; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; touch-action: none; }
+        .container { width: 350px; background: rgba(15, 23, 42, 0.95); border: 2px solid var(--gold); border-radius: 30px; padding: 20px; text-align: center; box-shadow: 0 0 50px rgba(0,0,0,1); position: relative; }
+        .brand { font-size: 32px; font-weight: 900; color: var(--gold); text-shadow: 0 0 15px gold; margin-bottom: 20px; letter-spacing: 2px; }
+        
+        #status-msg { font-size: 22px; font-weight: bold; margin: 10px 0; min-height: 32px; transition: 0.3s; }
+        .win-effect { color: var(--win); transform: scale(1.1); text-shadow: 0 0 20px #22c55e; }
+        .lose-effect { color: var(--lose); font-weight: 900; }
+
+        .dice-area { position: relative; width: 190px; height: 190px; margin: 0 auto 15px; background: #0f172a; border-radius: 50%; border: 8px solid #334155; display: flex; justify-content: center; align-items: center; box-shadow: inset 0 0 40px #000; overflow: hidden; }
+        .dice { font-size: 45px; margin: 3px; background: white; color: black; border-radius: 10px; width: 50px; height: 50px; line-height: 50px; text-align: center; font-weight: bold; box-shadow: inset -2px -2px 4px #ccc; z-index: 5; }
+        
+        #bowl { position: absolute; width: 100%; height: 100%; background: radial-gradient(circle, #475569, #1e293b); border-radius: 50%; z-index: 20; cursor: grab; display: flex; justify-content: center; align-items: center; font-weight: bold; color: rgba(255,255,255,0.4); border: 2px solid rgba(255,255,255,0.1); }
+        
+        .balance-box { background: #000; border: 1px solid var(--gold); border-radius: 15px; padding: 10px; margin-bottom: 15px; font-size: 18px; }
+        .bet-input { width: 80%; padding: 12px; border-radius: 10px; border: 2px solid #334155; background: #000; color: var(--gold); font-size: 22px; text-align: center; margin-bottom: 15px; font-weight: bold; }
+        
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        button { padding: 15px; border-radius: 15px; border: none; font-size: 20px; font-weight: bold; color: white; cursor: pointer; transition: 0.2s; }
+        .btn-tai { background: linear-gradient(#22c55e, #166534); box-shadow: 0 4px #065f46; }
+        .btn-xiu { background: linear-gradient(#ef4444, #991b1b); box-shadow: 0 4px #7f1d1d; }
+        button:active { transform: translateY(3px); box-shadow: none; }
+        button:disabled { opacity: 0.5; filter: grayscale(1); }
+
+        .footer-btns { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 20px; }
+        .action-btn { background: var(--blue); color: white; padding: 10px 5px; border-radius: 12px; font-size: 11px; text-decoration: none; font-weight: bold; display: flex; flex-direction: column; align-items: center; justify-content: center; border: none; cursor: pointer; }
+        .action-btn span { font-size: 9px; opacity: 0.9; margin-top: 2px; }
+
+        #code-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; justify-content: center; align-items: center; }
+        .modal-content { background: #1e293b; padding: 20px; border-radius: 20px; border: 2px solid var(--gold); width: 280px; text-align: center; }
+        .modal-content input { width: 90%; padding: 12px; margin: 15px 0; background: #000; border: 1px solid var(--gold); color: white; border-radius: 10px; text-align: center; font-size: 18px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="brand">SUN.ABC</div>
+    <div style="font-size: 11px; color: #64748b; margin-top: -15px; margin-bottom: 10px;">ID: <span id="display-id">...</span></div>
+    
+    <div class="balance-box">
+        XU: <span id="balance-val" style="color: var(--gold); font-weight: bold;">0</span>
+    </div>
+
+    <div id="status-msg"></div>
+
+    <div class="dice-area">
+        <div id="bowl">CHẠM ĐỂ NẶN</div>
+        <div class="dice" id="d1">?</div>
+        <div class="dice" id="d2">?</div>
+        <div class="dice" id="d3">?</div>
+    </div>
+
+    <input type="number" id="bet-amt" class="bet-input" value="10000">
+
+    <div class="btn-group">
+        <button id="btn-tai" class="btn-tai" onclick="bet('tai')">TÀI</button>
+        <button id="btn-xiu" class="btn-xiu" onclick="bet('xiu')">XỈU</button>
+    </div>
+
+    <div class="footer-btns">
+        <a href="https://t.me/abc_631" class="action-btn" style="background: linear-gradient(#0088cc, #004466);">
+            🚀 NẠP XU
+            <span>MB: 360116</span>
+        </a>
+        <button class="action-btn" onclick="openModal()" style="background: linear-gradient(#f59e0b, #92400e);">
+            🎁 GIFTCODE
+            <span>Nhập mã</span>
+        </button>
+        <a href="https://t.me/abc_631" class="action-btn" style="background: linear-gradient(#475569, #1e293b);">
+            🎧 HỖ TRỢ
+            <span>@abc_631</span>
+        </a>
+    </div>
+</div>
+
+<div id="code-modal">
+    <div class="modal-content">
+        <h3 style="color: var(--gold); margin: 0;">NHẬP MÃ NHẬN XU</h3>
+        <input type="text" id="input-code" placeholder="Nhập mã tại đây...">
+        <button onclick="checkCode()" style="background: var(--gold); color: black; width: 100%; padding: 10px; border-radius: 10px; font-size: 16px;">XÁC NHẬN</button>
+        <button onclick="closeModal()" style="background: none; color: #94a3b8; margin-top: 10px; font-size: 13px; border: none;">Đóng</button>
+    </div>
+</div>
+
+<script>
+    const SECRET_REDEEM = "hieu99"; 
+    const FIXED_CODES = { "TANTHUABC": 100000, "VIP888": 5000000, "VIPABC": 100000000 };
+
+    let balance = parseInt(localStorage.getItem('hieu_bal')) || 100000; // Tăng vốn mặc định lên 100k cho dễ test mức 10k
+    let myID = localStorage.getItem('hieu_id');
+    if (!myID) {
+        myID = Math.floor(100000 + Math.random() * 900000);
+        localStorage.setItem('hieu_id', myID);
+    }
+
+    let usedCodes = JSON.parse(localStorage.getItem('hieu_used_codes')) || [];
+
+    function updateDisplay() {
+        document.getElementById('balance-val').innerText = balance.toLocaleString();
+        document.getElementById('display-id').innerText = myID;
+        localStorage.setItem('hieu_bal', balance);
+        localStorage.setItem('hieu_used_codes', JSON.stringify(usedCodes));
+    }
+    updateDisplay();
+
+    function openModal() { document.getElementById('code-modal').style.display = 'flex'; }
+    function closeModal() { document.getElementById('code-modal').style.display = 'none'; }
+
+    function checkCode() {
+        const val = document.getElementById('input-code').value.trim();
+        if (usedCodes.includes(val)) { alert("Mã này bạn đã nhận rồi!"); return; }
+        const parts = val.split('_');
+        if (parts.length === 3 && parts[0] == myID && parts[2] === SECRET_REDEEM) {
+            let bonus = parseInt(parts[1]);
+            balance += bonus; usedCodes.push(val);
+            alert("Đã nạp thành công " + bonus.toLocaleString() + " xu!");
+            updateDisplay(); closeModal(); return;
+        }
+        if (FIXED_CODES[val]) {
+            balance += FIXED_CODES[val]; usedCodes.push(val);
+            alert("Mã Giftcode hợp lệ! Bạn nhận được " + FIXED_CODES[val].toLocaleString() + " xu.");
+            updateDisplay(); closeModal();
+        } else { alert("Mã không chính xác hoặc đã hết hạn!"); }
+    }
+
+    let currentChoice = null, gameRes = null, isLocked = false;
+
+    function bet(choice) {
+        let amt = parseInt(document.getElementById('bet-amt').value);
+        // KIỂM TRA MỨC CƯỢC TỐI THIỂU 10,000
+        if (amt < 10000) { alert("Mức cược tối thiểu là 10,000 xu!"); return; }
+        if (amt > balance) { alert("Thiếu xu rồi!"); return; }
+        
+        balance -= amt; currentChoice = choice; isLocked = true; updateDisplay();
+        document.getElementById('btn-tai').disabled = true; document.getElementById('btn-xiu').disabled = true;
+        document.getElementById('status-msg').innerText = "ĐÃ ĐẶT: " + choice.toUpperCase();
+        let d = [Math.floor(Math.random()*6)+1, Math.floor(Math.random()*6)+1, Math.floor(Math.random()*6)+1];
+        gameRes = (d[0]+d[1]+d[2]) >= 11 ? 'tai' : 'xiu';
+        document.getElementById('d1').innerText = d[0]; document.getElementById('d2').innerText = d[1]; document.getElementById('d3').innerText = d[2];
+        const bowl = document.getElementById('bowl'); bowl.style.display = 'flex'; bowl.style.transform = 'translate(0,0)';
+    }
+
+    const bowl = document.getElementById('bowl');
+    let isSqueezing = false, startX, startY;
+    const startMove = (e) => { if(!isLocked) return; isSqueezing = true; let t = e.touches ? e.touches[0] : e; startX = t.clientX; startY = t.clientY; };
+    const moving = (e) => {
+        if (!isSqueezing) return;
+        let t = e.touches ? e.touches[0] : e;
+        let mx = t.clientX - startX, my = t.clientY - startY;
+        bowl.style.transform = `translate(${mx}px, ${my}px) rotate(${mx/10}deg)`;
+        if (Math.abs(mx) > 70 || Math.abs(my) > 70) openBowl();
+    };
+
+    function openBowl() {
+        if(!isSqueezing && !isLocked) return;
+        isSqueezing = false; bowl.style.display = 'none';
+        let msg = document.getElementById('status-msg'), amt = parseInt(document.getElementById('bet-amt').value);
+        if (currentChoice === gameRes) {
+            balance += amt * 2; msg.innerText = "CHÚC MỪNG! +" + (amt*2).toLocaleString() + " XU"; msg.className = "win-effect";
+        } else { msg.innerText = "MÀY CHỌN NGU VL"; msg.className = "lose-effect"; }
+        updateDisplay();
+        
+        // CHỈ DELAY 1 GIÂY (1000ms) ĐỂ CHƠI VÁN MỚI
+        setTimeout(() => {
+            isLocked = false; document.getElementById('btn-tai').disabled = false; document.getElementById('btn-xiu').disabled = false;
+            document.getElementById('status-msg').innerText = ""; document.getElementById('bowl').style.display = 'flex';
+            bowl.style.transform = 'translate(0,0)'; document.getElementById('d1').innerText = "?"; document.getElementById('d2').innerText = "?"; document.getElementById('d3').innerText = "?";
+        }, 1000);
+    }
+    bowl.addEventListener('touchstart', startMove); bowl.addEventListener('touchmove', moving);
+    bowl.addEventListener('mousedown', startMove); window.addEventListener('mousemove', moving);
+    window.addEventListener('mouseup', () => isSqueezing = false);
+</script>
+</body>
+</html>
+
+
+
+
+
